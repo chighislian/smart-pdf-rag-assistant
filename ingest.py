@@ -21,7 +21,7 @@ def split_text(text, chunk_size=1000, overlap=200):
 
 
 if __name__ == "__main__":
-    text = load_pdf(r"C:\Project\PDF_RAG_ChatBot\attention.pdf")
+    text = load_pdf(r"sample_pdf/DevOps_Material.pdf")
     chunks = split_text(text)
 
     print(f"Total chunks: {len(chunks)}")
