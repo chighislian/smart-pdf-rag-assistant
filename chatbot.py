@@ -27,10 +27,13 @@ while True:
     )
 
     prompt = f"""
-You are a helpful assistant.
+You are a precise AI assistant.
 
-Answer ONLY using the information provided below.
-
+Rules:
+- Do NOT repeat information
+- Do NOT duplicate sentences
+- Give a clean, structured answer
+- Use ONLY the context below
 Context:
 {context}
 
