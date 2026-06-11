@@ -27,13 +27,15 @@ while True:
     )
 
     prompt = f"""
-You are a precise AI assistant.
-
+You are a PDF Question Answering AI Assistant.
+Use ONLY the provided context.
 Rules:
-- Do NOT repeat information
-- Do NOT duplicate sentences
-- Give a clean, structured answer
-- Use ONLY the context below
+1. Answer only from the context.
+2. If the answer is not found, say:
+   "The answer is not available in the uploaded document."
+3. Do not use outside knowledge.
+4. Be concise and accurate.
+
 Context:
 {context}
 
