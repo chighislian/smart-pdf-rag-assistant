@@ -1,5 +1,4 @@
 from ingest import load_pdf, split_text
-
 from langchain_core.documents import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
