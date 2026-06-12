@@ -38,6 +38,30 @@ with st.sidebar:
 
     st.write("🔍 Embedding: all-MiniLM-L6-v2")
 
+    import os
+    pdf_files = []
+
+    if os.path.exists("uploads"):
+
+        pdf_files = [
+
+            f for f in os.listdir("uploads")
+
+            if f.endswith(".pdf")
+
+        ]
+
+    st.write(f"📄 Documents: {len(pdf_files)}")
+
+    if pdf_files:
+
+        st.write("### Uploaded Files")
+
+        for file in pdf_files:
+
+            st.write(f"📄 {file}")
+
+
     st.divider()
 
     if st.button("🗑 Clear Chat"):
