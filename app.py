@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-
 from ollama import chat
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -17,16 +16,13 @@ st.set_page_config(
 
 st.title("📄 PDF AI Assistant")
 
-# ------------------------
 # Session State
-# ------------------------
+
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ------------------------
 # Embeddings + Persistent DB
-# ------------------------
 
 embedding_model = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
@@ -39,21 +35,16 @@ db = Chroma(
     embedding_function=embedding_model
 )
 
-# ------------------------
 # Sidebar
-# ------------------------
 
 with st.sidebar:
 
     st.header("📚 PDF AI Assistant")
 
-    st.write("🤖 Model: Llama 3.2")
-    st.write("📚 Vector DB: ChromaDB")
-    st.write("🔍 Embedding: all-MiniLM-L6-v2")
+    st.write("✨ AI-Powered Document Intelligence")
+    st.write("🚀 Smart Document Search")
 
-    # ------------------------
     # Upload PDF (incremental indexing)
-    # ------------------------
 
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
@@ -90,9 +81,7 @@ with st.sidebar:
 
         st.success("Added to knowledge base!")
 
-    # ------------------------
     # Show uploaded files
-    # ------------------------
 
     pdf_files = []
 
@@ -115,27 +104,21 @@ with st.sidebar:
 
     st.divider()
 
-    # ------------------------
     # Clear Chat
-    # ------------------------
 
     if st.button("🗑 Clear Chat"):
 
         st.session_state.messages = []
         st.rerun()
 
-# ------------------------
 # Chat History
-# ------------------------
 
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ------------------------
 # Chat Input
-# ------------------------
 
 question = st.chat_input("Ask a question about your documents...")
 
@@ -149,20 +132,30 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
 
-    # ------------------------
+
     # Retrieve context
-    # ------------------------
 
-    docs = db.similarity_search(question, k=5)
 
-    context = "\n\n---\n\n".join(
-        doc.page_content.strip()
+    docs = db.similarity_search_with_score(question, k=6)
+
+    docs = [
+        doc for doc, score in docs
+        if score < 1.2
+    ]
+
+    if not docs:
+        docs = db.similarity_search(question, k=3)
+
+    context = "\n\n".join(
+
+        f"[Source chunk]\n{doc.page_content.strip()}"
+
         for doc in docs
+
     )
 
-    # ------------------------
     # Prompt
-    # ------------------------
+
 
     prompt = f"""
 You are a PDF Question Answering AI Assistant.
@@ -183,9 +176,9 @@ Question:
 Answer:
 """
 
-    # ------------------------
+    
     # LLM Response
-    # ------------------------
+
 
     with st.chat_message("assistant"):
 
