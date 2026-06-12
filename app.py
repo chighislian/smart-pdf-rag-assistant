@@ -26,9 +26,27 @@ if "messages" not in st.session_state:
 
     st.session_state.messages = []
 
+# Sidebar
+
+with st.sidebar:
+
+    st.header("PDF AI Assistant")
+
+    st.write("🤖 Model: Llama 3.2")
+
+    st.write("📚 Vector DB: ChromaDB")
+
+    st.write("🔍 Embedding: all-MiniLM-L6-v2")
+
+    st.divider()
+
+    if st.button("🗑 Clear Chat"):
+
+        st.session_state.messages = []
+
+        st.rerun()
 
 # Load Vector Database
-
 
 embedding_model = HuggingFaceEmbeddings(
 
@@ -46,13 +64,11 @@ db = Chroma(
 
 # Display Chat History
 
-
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
 
         st.markdown(message["content"])
-
 
 # User Input
 
@@ -65,7 +81,7 @@ question = st.chat_input(
 
 if question:
 
-    # Show user message
+    # Show User Message
 
     st.session_state.messages.append(
 
@@ -83,11 +99,9 @@ if question:
 
         st.markdown(question)
 
-    # ------------------------
 
     # Retrieve Context
 
-    # ------------------------
 
     docs = db.similarity_search(
 
@@ -130,12 +144,7 @@ Question:
 Answer:
 
 """
-
-    # ------------------------
-
     # LLM Response
-
-    # ------------------------
 
     with st.chat_message("assistant"):
 
@@ -162,6 +171,8 @@ Answer:
             answer = response["message"]["content"]
 
             st.markdown(answer)
+
+    # Save Assistant Response
 
     st.session_state.messages.append(
 
