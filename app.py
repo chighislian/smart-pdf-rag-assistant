@@ -6,11 +6,29 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from langchain_community.vectorstores import Chroma
 
-st.set_page_config(page_title="PDF AI Assistant", page_icon="📄")
+# Page Setup
+
+st.set_page_config(
+
+    page_title="PDF AI Assistant",
+
+    page_icon="📄",
+
+    layout="wide"
+
+)
 
 st.title("📄 PDF AI Assistant")
 
-# Load embeddings + DB
+# Session State
+
+if "messages" not in st.session_state:
+
+    st.session_state.messages = []
+
+
+# Load Vector Database
+
 
 embedding_model = HuggingFaceEmbeddings(
 
@@ -26,23 +44,80 @@ db = Chroma(
 
 )
 
-question = st.text_input("Ask a question")
+# Display Chat History
 
-if st.button("Ask") and question:
 
-    docs = db.similarity_search(question, k=3)
+for message in st.session_state.messages:
 
-    context = "\n\n".join([d.page_content for d in docs])
+    with st.chat_message(message["role"]):
+
+        st.markdown(message["content"])
+
+
+# User Input
+
+
+question = st.chat_input(
+
+    "Ask a question about your documents..."
+
+)
+
+if question:
+
+    # Show user message
+
+    st.session_state.messages.append(
+
+        {
+
+            "role": "user",
+
+            "content": question
+
+        }
+
+    )
+
+    with st.chat_message("user"):
+
+        st.markdown(question)
+
+    # ------------------------
+
+    # Retrieve Context
+
+    # ------------------------
+
+    docs = db.similarity_search(
+
+        question,
+
+        k=5
+
+    )
+
+    context = "\n\n".join(
+
+        [doc.page_content for doc in docs]
+
+    )
 
     prompt = f"""
+
 You are a PDF Question Answering AI Assistant.
-Use ONLY the provided context.
+
 Rules:
-1. Answer only from the context.
+
+1. Use ONLY the provided context.
+
 2. If the answer is not found, say:
-   "The answer is not available in the uploaded document."
+
+   "The answer is not available in the uploaded documents."
+
 3. Do not use outside knowledge.
-4. Be concise and accurate.
+
+4. Give clean and structured answers.
 
 Context:
 
@@ -52,18 +127,50 @@ Question:
 
 {question}
 
-Answer clearly and concisely.
+Answer:
 
 """
 
-    response = chat(
+    # ------------------------
 
-        model="llama3.2:latest",
+    # LLM Response
 
-        messages=[{"role": "user", "content": prompt}]
+    # ------------------------
+
+    with st.chat_message("assistant"):
+
+        with st.spinner("Thinking..."):
+
+            response = chat(
+
+                model="llama3.2:latest",
+
+                messages=[
+
+                    {
+
+                        "role": "user",
+
+                        "content": prompt
+
+                    }
+
+                ]
+
+            )
+
+            answer = response["message"]["content"]
+
+            st.markdown(answer)
+
+    st.session_state.messages.append(
+
+        {
+
+            "role": "assistant",
+
+            "content": answer
+
+        }
 
     )
-
-    st.subheader("Answer")
-
-    st.write(response["message"]["content"])
