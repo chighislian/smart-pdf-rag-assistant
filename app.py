@@ -135,10 +135,14 @@ if question:
 
     )
 
-    context = "\n\n".join(
+#   context = "\n\n".join(
 
-        [doc.page_content for doc in docs]
+#       [doc.page_content for doc in docs]
 
+#   )
+    context = "\n\n---\n\n".join(
+        doc.page_content.strip()
+        for doc in docs
     )
 
     prompt = f"""
@@ -201,11 +205,9 @@ Answer:
     st.session_state.messages.append(
 
         {
-
             "role": "assistant",
 
             "content": answer
 
         }
-
     )
