@@ -18,7 +18,6 @@ st.title("📄 PDF AI Assistant")
 
 # Session State
 
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -44,15 +43,21 @@ with st.sidebar:
     st.write("✨ AI-Powered Document Intelligence")
     st.write("🚀 Smart Document Search")
 
-    # Upload PDF (incremental indexing)
+    # Upload PDF
 
-    uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
+    uploaded_file = st.file_uploader(
+        "Upload PDF",
+        type=["pdf"]
+    )
 
     if uploaded_file:
 
         os.makedirs("uploads", exist_ok=True)
 
-        file_path = os.path.join("uploads", uploaded_file.name)
+        file_path = os.path.join(
+            "uploads",
+            uploaded_file.name
+        )
 
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
@@ -62,26 +67,29 @@ with st.sidebar:
         with st.spinner("Indexing document..."):
 
             text = load_pdf(file_path)
+
             chunks = split_text(text)
 
-            docs = []
+            docs_to_add = []
 
             for chunk in chunks:
 
-                docs.append(
+                docs_to_add.append(
                     Document(
                         page_content=chunk,
-                        metadata={"source": uploaded_file.name}
+                        metadata={
+                            "source": uploaded_file.name
+                        }
                     )
                 )
 
-            # IMPORTANT: ADD instead of rebuild
-            db.add_documents(docs)
+            db.add_documents(docs_to_add)
+
             db.persist()
 
         st.success("Added to knowledge base!")
 
-    # Show uploaded files
+    # Uploaded Files
 
     pdf_files = []
 
@@ -109,6 +117,7 @@ with st.sidebar:
     if st.button("🗑 Clear Chat"):
 
         st.session_state.messages = []
+
         st.rerun()
 
 # Chat History
@@ -116,46 +125,70 @@ with st.sidebar:
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
+
         st.markdown(message["content"])
 
-# Chat Input
+# User Input
 
-question = st.chat_input("Ask a question about your documents...")
+question = st.chat_input(
+    "Ask a question about your documents..."
+)
 
 if question:
 
-    # Save user message
+    # User Message
+
     st.session_state.messages.append(
-        {"role": "user", "content": question}
+        {
+            "role": "user",
+            "content": question
+        }
     )
 
     with st.chat_message("user"):
+
         st.markdown(question)
 
+    # Retrieve Documents
 
-    # Retrieve context
-
-
-    docs = db.similarity_search_with_score(question, k=6)
+    search_results = db.similarity_search_with_score(
+        question,
+        k=6
+    )
 
     docs = [
-        doc for doc, score in docs
+        doc
+        for doc, score in search_results
         if score < 1.2
     ]
 
     if not docs:
-        docs = db.similarity_search(question, k=3)
+
+        docs = db.similarity_search(
+            question,
+            k=3
+        )
+
+    # Build Context
 
     context = "\n\n".join(
-
-        f"[Source chunk]\n{doc.page_content.strip()}"
-
+        f"[Source Chunk]\n{doc.page_content.strip()}"
         for doc in docs
+    )
 
+    # Collect Sources
+
+    sources = sorted(
+        set(
+            doc.metadata.get(
+                "source",
+                "Unknown Document"
+            )
+            for doc in docs
+        )
     )
 
     # Prompt
-
 
     prompt = f"""
 You are a PDF Question Answering AI Assistant.
@@ -176,9 +209,7 @@ Question:
 Answer:
 """
 
-    
-    # LLM Response
-
+    # Assistant Response
 
     with st.chat_message("assistant"):
 
@@ -198,7 +229,25 @@ Answer:
 
             st.markdown(answer)
 
-    # Save assistant response
+            # Sources Section
+
+            if sources:
+
+                st.divider()
+
+                st.caption("Sources")
+
+                for source in sources:
+
+                    st.markdown(
+                        f"📄 {source}"
+                    )
+
+    # Save Assistant Response
+
     st.session_state.messages.append(
-        {"role": "assistant", "content": answer}
+        {
+            "role": "assistant",
+            "content": answer
+        }
     )
