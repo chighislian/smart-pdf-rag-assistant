@@ -1,11 +1,8 @@
 # PDF QA Chatbot (RAG) Architecture
 
-## System Overview
-
 This project is a Retrieval-Augmented Generation (RAG) system that lets users upload PDFs and ask questions about them using a local LLM (Ollama).
 
 ## Project Architecture:
-
 
 
 > **Stack:** Streamlit · LangChain · HuggingFace · ChromaDB · Ollama
