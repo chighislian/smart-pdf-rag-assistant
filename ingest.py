@@ -1,4 +1,3 @@
-
 from pypdf import PdfReader
 
 def load_pdf(file_path):
